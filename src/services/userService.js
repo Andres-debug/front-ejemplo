@@ -12,6 +12,14 @@ const api = axios.create({
   },
 });
 
+// Configuración separada para autenticación (registro y login)
+const authApi = axios.create({
+  baseURL: 'http://localhost:4000/api/auth',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 // OBTENER TODOS LOS USUARIOS
 // GET /api/user
 // Retorna: array de usuarios con sus posts relacionados
@@ -25,16 +33,41 @@ export const getAllUsers = async () => {
   }
 };
 
-// CREAR NUEVO USUARIO
-// POST /api/user
-// Parámetros: { nombre, correo }
-// Retorna: objeto del usuario creado
+// CREAR NUEVO USUARIO (REGISTRO CON BCRYPT)
+// POST /api/auth/register
+// Parámetros: { nombre, correo, password }
+// Retorna: objeto del usuario creado con contraseña hasheada
 export const createUser = async (userData) => {
   try {
-    const response = await api.post('/', userData);
-    return response.data;
+    console.log('Datos originales:', userData);
+    
+    // Validamos que todos los campos requeridos estén presentes
+    if (!userData.nombre || !userData.correo || !userData.password) {
+      throw new Error('Faltan campos requeridos: nombre, correo y password son obligatorios');
+    }
+    
+    // Validamos que password no esté vacío
+    if (userData.password.trim() === '') {
+      throw new Error('La contraseña no puede estar vacía');
+    }
+    
+    // Preparamos los datos exactamente como los espera el endpoint de registro
+    const dataToSend = {
+      nombre: userData.nombre.trim(),
+      correo: userData.correo.trim(),
+      password: userData.password.trim()
+    };
+    
+    console.log('Datos enviados al endpoint de registro:', dataToSend);
+    
+    // CAMBIO IMPORTANTE: usamos authApi y el endpoint /register
+    const response = await authApi.post('/register', dataToSend);
+    console.log('Respuesta del backend (registro):', response.data);
+    
+    // El endpoint de registro devuelve { message, user }, extraemos el user
+    return response.data.user;
   } catch (error) {
-    console.error('Error en createUser:', error.response?.data || error.message);
+    console.error('Error en createUser (registro):', error.response?.data || error.message);
     throw error;
   }
 };

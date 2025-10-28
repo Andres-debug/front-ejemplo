@@ -8,16 +8,16 @@ import * as userService from '../services/userService';
 // Retorna: objeto con estado y acciones para manejar usuarios
 const useUserStore = create((set) => ({
   // ========== ESTADO ==========
-  
+
   // Array de usuarios obtenidos del backend
   users: [],
-  
+
   // Usuario actualmente seleccionado para editar (null si no hay selección)
   selectedUser: null,
-  
+
   // Estado de carga para mostrar spinners/loaders
   loading: false,
-  
+
   // Mensajes de error (null si no hay error)
   error: null,
 
@@ -31,31 +31,33 @@ const useUserStore = create((set) => ({
       const users = await userService.getAllUsers();
       set({ users: Array.isArray(users) ? users : [], loading: false });
     } catch {
-      set({ 
+      set({
         users: [], // Aseguramos que siempre sea un array
-        error: 'Error al cargar usuarios', 
-        loading: false 
+        error: 'Error al cargar usuarios',
+        loading: false,
       });
     }
   },
 
-  // CREAR NUEVO USUARIO
-  // Parámetro: userData { nombre, correo }
+  // CREAR NUEVO USUARIO (REGISTRO CON BCRYPT)
+  // Parámetro: userData { nombre, correo, password }
+  // Usa el endpoint /api/auth/register que hashea la contraseña con bcrypt
   // Añade el nuevo usuario al estado local tras crearlo en el backend
   addUser: async (userData) => {
+    console.log('Datos recibidos en addUser (store):', userData); // Log para debugging
     set({ loading: true, error: null });
     try {
       const newUser = await userService.createUser(userData);
       // Agregamos el nuevo usuario al array existente
-      set((state) => ({ 
+      set((state) => ({
         users: [...state.users, newUser],
-        loading: false 
+        loading: false,
       }));
       return newUser; // Retornamos para feedback en el componente
     } catch (error) {
-      set({ 
-        error: 'Error al crear usuario', 
-        loading: false 
+      set({
+        error: 'Error al crear usuario',
+        loading: false,
       });
       throw error;
     }
@@ -77,9 +79,9 @@ const useUserStore = create((set) => ({
         loading: false,
       }));
     } catch (error) {
-      set({ 
-        error: 'Error al actualizar usuario', 
-        loading: false 
+      set({
+        error: 'Error al actualizar usuario',
+        loading: false,
       });
       throw error;
     }
@@ -98,9 +100,9 @@ const useUserStore = create((set) => ({
         loading: false,
       }));
     } catch (error) {
-      set({ 
-        error: 'Error al eliminar usuario', 
-        loading: false 
+      set({
+        error: 'Error al eliminar usuario',
+        loading: false,
       });
       throw error;
     }

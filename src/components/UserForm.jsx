@@ -11,6 +11,7 @@ const UserForm = () => {
   const [formData, setFormData] = useState({
     nombre: '',
     correo: '',
+    password: '', // Añadimos el campo password requerido por el backend
   });
 
   // Efecto para cargar datos cuando se selecciona un usuario para editar
@@ -19,10 +20,11 @@ const UserForm = () => {
       setFormData({
         nombre: selectedUser.nombre || '',
         correo: selectedUser.correo || '',
+        password: '', // No mostramos la contraseña por seguridad, se deja vacía para editar
       });
     } else {
       // Limpia el formulario cuando no hay usuario seleccionado
-      setFormData({ nombre: '', correo: '' });
+      setFormData({ nombre: '', correo: '', password: '' });
     }
   }, [selectedUser]);
 
@@ -41,23 +43,38 @@ const UserForm = () => {
     
     // Validación básica
     if (!formData.nombre.trim() || !formData.correo.trim()) {
-      alert('Por favor completa todos los campos');
+      alert('Por favor completa todos los campos obligatorios');
+      return;
+    }
+
+    // Para creación, la contraseña es obligatoria
+    if (!selectedUser && !formData.password.trim()) {
+      alert('La contraseña es obligatoria para crear un nuevo usuario');
       return;
     }
 
     try {
       if (selectedUser) {
         // Modo edición: actualiza usuario existente
-        await updateUser(selectedUser.id, formData);
+        // Solo enviamos la contraseña si se proporcionó una nueva
+        const updateData = {
+          nombre: formData.nombre,
+          correo: formData.correo,
+        };
+        if (formData.password.trim()) {
+          updateData.password = formData.password;
+        }
+        await updateUser(selectedUser.id, updateData);
         alert('Usuario actualizado exitosamente');
       } else {
         // Modo creación: añade nuevo usuario
+        console.log('Datos del formulario antes de enviar:', formData); // Log para debugging
         await addUser(formData);
         alert('Usuario creado exitosamente');
       }
       
       // Limpia el formulario tras el éxito
-      setFormData({ nombre: '', correo: '' });
+      setFormData({ nombre: '', correo: '', password: '' });
       setSelectedUser(null);
     } catch {
       alert('Error al guardar el usuario');
@@ -66,7 +83,7 @@ const UserForm = () => {
 
   // Manejador para cancelar la edición
   const handleCancel = () => {
-    setFormData({ nombre: '', correo: '' });
+    setFormData({ nombre: '', correo: '', password: '' });
     setSelectedUser(null);
   };
 
@@ -107,6 +124,25 @@ const UserForm = () => {
             value={formData.correo}
             onChange={handleChange}
             placeholder="ejemplo@correo.com"
+            className="w-full px-4 py-2 bg-[#0b132b] border border-[#3a506b] rounded-lg 
+                     text-white placeholder-gray-400 focus:outline-none focus:ring-2 
+                     focus:ring-[#5bc0be] transition"
+          />
+        </div>
+
+        {/* Campo de contraseña */}
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium mb-2">
+            Contraseña {!selectedUser && <span className="text-red-400">*</span>}
+            {selectedUser && <span className="text-gray-400 text-xs">(dejar vacío para mantener actual)</span>}
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder={selectedUser ? "Nueva contraseña (opcional)" : "Ingresa la contraseña"}
             className="w-full px-4 py-2 bg-[#0b132b] border border-[#3a506b] rounded-lg 
                      text-white placeholder-gray-400 focus:outline-none focus:ring-2 
                      focus:ring-[#5bc0be] transition"
