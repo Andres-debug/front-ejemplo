@@ -1,29 +1,31 @@
-import { useEffect,useState } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import './App.css'
-import CharacterList from './components/CharacterList'
-import Header from './components/Header';
+import Navbar from './components/Navbar'
+import RickMortyPage from './pages/RickMortyPage'
+import UsersPage from './pages/UsersPage'
+
+// Componente principal de la aplicación.
+// Usa React Router para navegación entre páginas:
+// - "/" → Rick and Morty (API pública)
+// - "/users" → CRUD de usuarios (backend local)
 
 function App() {
-
-  const [characters, setCharacters] = useState([])
-
-  const getCharacters = async ()=>{
-    const response = await fetch('https://rickandmortyapi.com/api/character');
-      const data = await response.json();
-      setCharacters(data.results)
-  };
-
-  useEffect(()=>{
-    getCharacters();
-  },[])
-
   return (
-    <>
+    <Router>
       <div className='min-h-screen bg-[#0b132b] text-white'>
-    <Header title="Rick and Morty App"/>
-    <CharacterList characters={characters}/>
+        {/* Navbar con navegación entre rutas */}
+        <Navbar />
+        
+        {/* Definición de rutas */}
+        <Routes>
+          {/* Ruta principal: Rick and Morty */}
+          <Route path="/" element={<RickMortyPage />} />
+          
+          {/* Ruta de CRUD de usuarios */}
+          <Route path="/users" element={<UsersPage />} />
+        </Routes>
       </div>
-    </>
+    </Router>
   )
 }
 
